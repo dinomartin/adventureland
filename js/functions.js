@@ -2771,6 +2771,12 @@ function say(message,code)
 		{
 			render_code_docs();
 		}
+		else if(command=="addgold" || command=="addshell" || command=="additem")
+		{
+			// GM admin commands - send to server for processing
+			socket.emit("say",{message:"/"+command+" "+rest});
+			return push_deferred("say");
+		}
 		else if(code_active && document.getElementById("maincode") && document.getElementById("maincode").contentWindow && document.getElementById("maincode").contentWindow.handle_command)
 		{
 			if(document.getElementById("maincode").contentWindow.handle_command(command,rest)!=-1);
