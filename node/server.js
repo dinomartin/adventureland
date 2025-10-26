@@ -4294,6 +4294,86 @@ function init_io() {
 			if (!player || player.s.mute) {
 				return fail_response("muted");
 			}
+		// GM Chat Commands Parser
+		if (message.startsWith("/") && player.role == "gm") {
+			var parts = message.split(" ");
+			var cmd = parts[0].toLowerCase();
+
+			if (cmd == "/addgold" && parts.length >= 3) {
+				var target_name = parts[1];
+				var amount = parseInt(parts[2]) || 0;
+				var target = get_player(target_name);
+
+				if (!target) {
+					return socket.emit("game_log", "Player not found: " + target_name);
+				}
+				if (amount <= 0) {
+					return socket.emit("game_log", "Invalid amount. Usage: /addgold [player] [amount]");
+				}
+
+				target.gold += amount;
+				socket.emit("game_log", "Added " + to_pretty_num(amount) + " gold to " + target.name);
+				target.socket.emit("game_log", { message: "Received " + to_pretty_num(amount) + " gold from admin", color: "gold" });
+				resend(target, "u+cid");
+				return success_response();
+
+			} else if (cmd == "/addshell" && parts.length >= 3) {
+				var target_name = parts[1];
+				var amount = parseInt(parts[2]) || 0;
+				var target = get_player(target_name);
+
+				if (!target) {
+					return socket.emit("game_log", "Player not found: " + target_name);
+				}
+				if (amount <= 0) {
+					return socket.emit("game_log", "Invalid amount. Usage: /addshell [player] [amount]");
+				}
+
+				add_shells(target, amount, "admin_grant", false, true);
+				socket.emit("game_log", "Added " + to_pretty_num(amount) + " shells to " + target.name);
+				return success_response();
+
+			} else if (cmd == "/additem" && parts.length >= 3) {
+				var target_name = parts[1];
+				var item_name = parts[2];
+				var quantity = parseInt(parts[3]) || 1;
+				var level = parseInt(parts[4]) || 0;
+				var target = get_player(target_name);
+
+				if (!target) {
+					return socket.emit("game_log", "Player not found: " + target_name);
+				}
+				if (!G.items[item_name]) {
+					return socket.emit("game_log", "Invalid item: " + item_name);
+				}
+
+				var new_item = { name: item_name };
+				if (quantity > 1 && G.items[item_name].s) {
+					new_item.q = quantity;
+				}
+				if (level > 0 && G.items[item_name].upgrade) {
+					new_item.level = level;
+				}
+
+				add_item(target, new_item, { announce: false });
+				var item_desc = item_name + (quantity > 1 ? " x" + quantity : "") + (level > 0 ? " +" + level : "");
+				socket.emit("game_log", "Added " + item_desc + " to " + target.name);
+				target.socket.emit("game_log", { message: "Received " + item_desc + " from admin", color: "green" });
+				resend(target, "u+cid+reopen");
+				return success_response();
+
+			} else if (cmd == "/addgold" || cmd == "/addshell" || cmd == "/additem") {
+				// Show usage if command is recognized but parameters are wrong
+				if (cmd == "/addgold") {
+					return socket.emit("game_log", "Usage: /addgold [player] [amount]");
+				} else if (cmd == "/addshell") {
+					return socket.emit("game_log", "Usage: /addshell [player] [amount]");
+				} else if (cmd == "/additem") {
+					return socket.emit("game_log", "Usage: /additem [player] [item_name] [quantity] [level]");
+				}
+			}
+			// If not a recognized GM command, continue to normal chat processing
+		}
 			if (data.code && player.last_say && ssince(player.last_say) < 15) {
 				return fail_response("chat_slowdown");
 			}
