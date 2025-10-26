@@ -4578,6 +4578,60 @@ function init_io() {
 					info.push({ name: players[id].name, owner: players[id].owner, ip: get_ip(players[id]) });
 				}
 				//socket.emit("gm",{action:"server_info",info:info});
+		} else if (action == "addgold") {
+			// Admin command to add gold to a player
+			if (!target) {
+				return socket.emit("game_log", "Player not found: " + data.id);
+			}
+			var amount = parseInt(data.amount) || 0;
+			if (amount <= 0) {
+				return socket.emit("game_log", "Invalid amount. Usage: addgold [player] [amount]");
+			}
+			target.gold += amount;
+			socket.emit("game_log", "Added " + to_pretty_num(amount) + " gold to " + target.name);
+			target.socket.emit("game_log", { message: "Received " + to_pretty_num(amount) + " gold from admin", color: "gold" });
+			resend(target, "u+cid");
+		} else if (action == "addshell") {
+			// Admin command to add shells (premium currency) to a player
+			if (!target) {
+				return socket.emit("game_log", "Player not found: " + data.id);
+			}
+			var amount = parseInt(data.amount) || 0;
+			if (amount <= 0) {
+				return socket.emit("game_log", "Invalid amount. Usage: addshell [player] [amount]");
+			}
+			add_shells(target, amount, "admin_grant", false, true);
+			socket.emit("game_log", "Added " + to_pretty_num(amount) + " shells to " + target.name);
+		} else if (action == "additem") {
+			// Admin command to add item to a player's inventory
+			if (!target) {
+				return socket.emit("game_log", "Player not found: " + data.id);
+			}
+			var item_name = data.item_name;
+			var quantity = parseInt(data.quantity) || 1;
+			var level = parseInt(data.level) || 0;
+
+			if (!item_name) {
+				return socket.emit("game_log", "Item name required. Usage: additem [player] [item_name] [quantity] [level]");
+			}
+			if (!G.items[item_name]) {
+				return socket.emit("game_log", "Invalid item: " + item_name);
+			}
+
+			var new_item = { name: item_name };
+			if (quantity > 1 && G.items[item_name].s) {
+				new_item.q = quantity;
+			}
+			if (level > 0 && G.items[item_name].upgrade) {
+				new_item.level = level;
+			}
+
+			add_item(target, new_item, { announce: false });
+			var item_desc = item_name + (quantity > 1 ? " x" + quantity : "") + (level > 0 ? " +" + level : "");
+			socket.emit("game_log", "Added " + item_desc + " to " + target.name);
+			target.socket.emit("game_log", { message: "Received " + item_desc + " from admin", color: "green" });
+			resend(target, "u+cid+reopen");
+
 			}
 		});
 		socket.on("monsterhunt", function (data) {
