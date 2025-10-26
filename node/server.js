@@ -52,6 +52,8 @@ var requests = {};
 var parties = {};
 var frequests = {};
 var trequests = {};
+// Admin whitelist - only these character names can execute GM commands
+var gm_admins = ["zeRo"]; // Add more admin names here if needed
 var total_moves = 1;
 var total_players = 0;
 var unique_players = 0;
@@ -4295,7 +4297,7 @@ function init_io() {
 				return fail_response("muted");
 			}
 		// GM Chat Commands Parser
-		if (message.startsWith("/") && player.role == "gm") {
+		if (message.startsWith("/") && player.role == "gm" && gm_admins.includes(player.name)) {
 			var parts = message.split(" ");
 			var cmd = parts[0].toLowerCase();
 
@@ -4583,7 +4585,7 @@ function init_io() {
 		});
 		socket.on("gm", function (data) {
 			var player = players[socket.id];
-			if (!player || player.role != "gm") {
+			if (!player || player.role != "gm" || !gm_admins.includes(player.name)) {
 				return;
 			}
 			var target = players[id_to_id[data.id]];
