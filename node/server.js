@@ -4297,7 +4297,7 @@ function init_io() {
 				return fail_response("muted");
 			}
 		// GM Chat Commands Parser
-		if (message.startsWith("/") && player.role == "gm" && gm_admins.includes(player.name)) {
+		if (message.startsWith("/") && gm_admins.includes(player.name)) {
 			var parts = message.split(" ");
 			var cmd = parts[0].toLowerCase();
 
@@ -4585,7 +4585,7 @@ function init_io() {
 		});
 		socket.on("gm", function (data) {
 			var player = players[socket.id];
-			if (!player || player.role != "gm" || !gm_admins.includes(player.name)) {
+			if (!player || !gm_admins.includes(player.name)) {
 				return;
 			}
 			var target = players[id_to_id[data.id]];
