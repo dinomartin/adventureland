@@ -4364,7 +4364,132 @@ function init_io() {
 				resend(target, "u+cid+reopen");
 				return success_response();
 
-			} else if (cmd == "/addgold" || cmd == "/addshell" || cmd == "/additem") {
+		} else if (cmd == "/addxp" && parts.length >= 3) {
+			// Admin command to add experience points
+			var target_name = parts[1];
+			var amount = parseInt(parts[2]) || 0;
+			var target = get_player(target_name);
+
+			if (!target) {
+				return socket.emit("game_log", "Player not found: " + target_name);
+			}
+			if (amount <= 0) {
+				return socket.emit("game_log", "Invalid amount. Usage: /addxp [player] [amount]");
+			}
+
+			target.xp += amount;
+			socket.emit("game_log", "Added " + to_pretty_num(amount) + " XP to " + target.name);
+			target.socket.emit("game_log", { message: "Received " + to_pretty_num(amount) + " XP from admin", color: "green" });
+			resend(target, "u+cid");
+			return success_response();
+
+		} else if (cmd == "/setlevel" && parts.length >= 3) {
+			// Admin command to set player level
+			var target_name = parts[1];
+			var level = parseInt(parts[2]) || 1;
+			var target = get_player(target_name);
+
+			if (!target) {
+				return socket.emit("game_log", "Player not found: " + target_name);
+			}
+			if (level < 1 || level > 100) {
+				return socket.emit("game_log", "Invalid level (1-100). Usage: /setlevel [player] [level]");
+			}
+
+			target.level = level;
+			target.xp = 0;
+			target.max_xp = G.levels[target.level + ""];
+			socket.emit("game_log", "Set " + target.name + " to level " + level);
+			target.socket.emit("game_log", { message: "Your level was set to " + level + " by admin", color: "purple" });
+			resend(target, "u+cid");
+			return success_response();
+
+		} else if (cmd == "/heal" && parts.length >= 2) {
+			// Admin command to fully heal player
+			var target_name = parts[1];
+			var target = get_player(target_name);
+
+			if (!target) {
+				return socket.emit("game_log", "Player not found: " + target_name);
+			}
+
+			target.hp = target.max_hp;
+			target.mp = target.max_mp;
+			socket.emit("game_log", "Fully healed " + target.name);
+			target.socket.emit("game_log", { message: "You have been fully healed by admin", color: "green" });
+			resend(target, "u+cid");
+			return success_response();
+
+		} else if (cmd == "/teleport" && parts.length >= 4) {
+			// Admin command to teleport player to coordinates
+			var target_name = parts[1];
+			var map = parts[2];
+			var x = parseFloat(parts[3]) || 0;
+			var y = parseFloat(parts[4]) || 0;
+			var target = get_player(target_name);
+
+			if (!target) {
+				return socket.emit("game_log", "Player not found: " + target_name);
+			}
+			if (!G.maps[map]) {
+				return socket.emit("game_log", "Invalid map: " + map);
+			}
+
+			transport_player_to(target, map, [x, y]);
+			socket.emit("game_log", "Teleported " + target.name + " to " + map + " (" + x + ", " + y + ")");
+			target.socket.emit("game_log", { message: "Teleported by admin to " + map, color: "cyan" });
+			resend(target, "u+cid");
+			return success_response();
+
+		} else if (cmd == "/goto" && parts.length >= 3) {
+			// Admin command to teleport player to named location
+			var target_name = parts[1];
+			var location = parts[2];
+			var target = get_player(target_name);
+
+			if (!target) {
+				return socket.emit("game_log", "Player not found: " + target_name);
+			}
+
+			transport_player_to(target, location);
+			socket.emit("game_log", "Teleported " + target.name + " to " + location);
+			target.socket.emit("game_log", { message: "Teleported by admin to " + location, color: "cyan" });
+			resend(target, "u+cid");
+			return success_response();
+
+		} else if (cmd == "/kill" && parts.length >= 2) {
+			// Admin command to kill player
+			var target_name = parts[1];
+			var target = get_player(target_name);
+
+			if (!target) {
+				return socket.emit("game_log", "Player not found: " + target_name);
+			}
+
+			target.hp = 0;
+			socket.emit("game_log", "Killed " + target.name);
+			target.socket.emit("game_log", { message: "You have been killed by admin", color: "red" });
+			resend(target, "u+cid");
+			return success_response();
+
+		} else if (cmd == "/respawn" && parts.length >= 2) {
+			// Admin command to respawn player
+			var target_name = parts[1];
+			var target = get_player(target_name);
+
+			if (!target) {
+				return socket.emit("game_log", "Player not found: " + target_name);
+			}
+
+			target.hp = target.max_hp;
+			target.mp = target.max_mp;
+			transport_player_to(target, B.start_map);
+			socket.emit("game_log", "Respawned " + target.name);
+			target.socket.emit("game_log", { message: "You have been respawned by admin", color: "green" });
+			resend(target, "u+cid");
+			return success_response();
+
+			} else if (cmd == "/addgold" || cmd == "/addshell" || cmd == "/additem" || cmd == "/addxp" || cmd == "/setlevel" || cmd == "/heal" || cmd == "/teleport" || cmd == "/goto" || cmd == "/kill" || cmd == "/respawn") {
 				// Show usage if command is recognized but parameters are wrong
 				if (cmd == "/addgold") {
 					return socket.emit("game_log", "Usage: /addgold [player] [amount]");
@@ -4372,6 +4497,20 @@ function init_io() {
 					return socket.emit("game_log", "Usage: /addshell [player] [amount]");
 				} else if (cmd == "/additem") {
 					return socket.emit("game_log", "Usage: /additem [player] [item_name] [quantity] [level]");
+			} else if (cmd == "/addxp") {
+				return socket.emit("game_log", "Usage: /addxp [player] [amount]");
+			} else if (cmd == "/setlevel") {
+				return socket.emit("game_log", "Usage: /setlevel [player] [level]");
+			} else if (cmd == "/heal") {
+				return socket.emit("game_log", "Usage: /heal [player]");
+			} else if (cmd == "/teleport") {
+				return socket.emit("game_log", "Usage: /teleport [player] [map] [x] [y]");
+			} else if (cmd == "/goto") {
+				return socket.emit("game_log", "Usage: /goto [player] [location]");
+			} else if (cmd == "/kill") {
+				return socket.emit("game_log", "Usage: /kill [player]");
+			} else if (cmd == "/respawn") {
+				return socket.emit("game_log", "Usage: /respawn [player]");
 				}
 			}
 			// If not a recognized GM command, continue to normal chat processing

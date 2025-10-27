@@ -2771,7 +2771,7 @@ function say(message,code)
 		{
 			render_code_docs();
 		}
-		else if(command=="addgold" || command=="addshell" || command=="additem")
+		else if(command=="addgold" || command=="addshell" || command=="additem" || command=="addxp" || command=="setlevel" || command=="heal" || command=="teleport" || command=="goto" || command=="kill" || command=="respawn")
 		{
 			// GM admin commands - send to server for processing
 			socket.emit("say",{message:"/"+command+" "+rest});
