@@ -4301,7 +4301,34 @@ function init_io() {
 			var parts = message.split(" ");
 			var cmd = parts[0].toLowerCase();
 
-			if (cmd == "/addgold" && parts.length >= 3) {
+			if (cmd == "/gmhelp") {
+				// Show all available GM commands
+				socket.emit("game_log", "=== GM Admin Commands ===");
+				socket.emit("game_log", "");
+				socket.emit("game_log", "ECONOMY:");
+				socket.emit("game_log", "  /addgold [player] [amount] - Add gold to player");
+				socket.emit("game_log", "  /addshell [player] [amount] - Add shells (premium currency)");
+				socket.emit("game_log", "  /additem [player] [item] [qty] [lvl] - Add item to inventory");
+				socket.emit("game_log", "");
+				socket.emit("game_log", "PROGRESSION:");
+				socket.emit("game_log", "  /addxp [player] [amount] - Add experience points");
+				socket.emit("game_log", "  /setlevel [player] [level] - Set player level (1-100)");
+				socket.emit("game_log", "");
+				socket.emit("game_log", "SUPPORT:");
+				socket.emit("game_log", "  /heal [player] - Fully restore HP and MP");
+				socket.emit("game_log", "  /respawn [player] - Respawn player at start (full heal)");
+				socket.emit("game_log", "");
+				socket.emit("game_log", "TELEPORT:");
+				socket.emit("game_log", "  /teleport [player] [map] [x] [y] - Teleport to coordinates");
+				socket.emit("game_log", "  /goto [player] [location] - Teleport to named location");
+				socket.emit("game_log", "");
+				socket.emit("game_log", "MODERATION:");
+				socket.emit("game_log", "  /kill [player] - Kill player (HP to 0)");
+				socket.emit("game_log", "");
+				socket.emit("game_log", "Type /gmhelp to see this list again");
+				return success_response();
+
+			} else if (cmd == "/addgold" && parts.length >= 3) {
 				var target_name = parts[1];
 				var amount = parseInt(parts[2]) || 0;
 				var target = get_player(target_name);
@@ -4489,7 +4516,7 @@ function init_io() {
 			resend(target, "u+cid");
 			return success_response();
 
-			} else if (cmd == "/addgold" || cmd == "/addshell" || cmd == "/additem" || cmd == "/addxp" || cmd == "/setlevel" || cmd == "/heal" || cmd == "/teleport" || cmd == "/goto" || cmd == "/kill" || cmd == "/respawn") {
+			} else if (cmd == "/gmhelp" || cmd == "/addgold" || cmd == "/addshell" || cmd == "/additem" || cmd == "/addxp" || cmd == "/setlevel" || cmd == "/heal" || cmd == "/teleport" || cmd == "/goto" || cmd == "/kill" || cmd == "/respawn") {
 				// Show usage if command is recognized but parameters are wrong
 				if (cmd == "/addgold") {
 					return socket.emit("game_log", "Usage: /addgold [player] [amount]");
