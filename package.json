@@ -1,0 +1,26 @@
+{
+  "name": "adventureland",
+  "version": "1.0.0",
+  "description": "https://adventure.land",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://local_proxy@127.0.0.1:46580/git/dinomartin/adventureland"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bytebuffer": "^5.0.1",
+    "protobufjs": "^7.5.4",
+    "range_check": "^4.1.0",
+    "request": "^2.88.2",
+    "socket.io": "^4.8.1"
+  }
+}

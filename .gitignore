@@ -7,11 +7,13 @@
 /electron/node_modules/
 /node/node_modules/
 /scripts/node_modules/
+/node_modules/
 *.pyc
 *.pyo
 *.pem
 *.pub
 *.bak
+*.log
 /scripts/test.js
 # System Files
 .DS_Store
