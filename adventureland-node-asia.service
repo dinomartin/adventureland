@@ -1,0 +1,17 @@
+[Unit]
+Description=Adventure Land Node.js Game Server (ASIA Region)
+After=network.target adventureland-backend.service
+Requires=adventureland-backend.service
+
+[Service]
+Type=simple
+User=youruser
+WorkingDirectory=/opt/adventureland
+ExecStart=/usr/bin/node /opt/adventureland/node/server.js ASIA I 2053
+Restart=always
+RestartSec=10
+StandardOutput=append:/opt/adventureland/logs/node-asia.log
+StandardError=append:/opt/adventureland/logs/node-asia-error.log
+
+[Install]
+WantedBy=multi-user.target
